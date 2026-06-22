@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Retail Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --surface2: #1e2330;
+    --border: #252c3d;
+    --accent: #4f7cff;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --accent4: #fb923c;
+    --text: #e8ecf4;
+    --text-muted: #7a849e;
+    --text-dim: #4a5168;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 28px 32px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .header-left h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .header-left p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .badge {
+    background: linear-gradient(135deg, #4f7cff22, #a78bfa22);
+    border: 1px solid #4f7cff44;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .kpi-card:nth-child(1)::before { background: var(--accent); }
+  .kpi-card:nth-child(2)::before { background: var(--accent3); }
+  .kpi-card:nth-child(3)::before { background: var(--accent2); }
+  .kpi-card:nth-child(4)::before { background: var(--accent4); }
+  .kpi-card:nth-child(5)::before { background: #f472b6; }
+
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .kpi-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+  .kpi-value span { font-size: 15px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
+
+  /* CHARTS ROW */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .charts-row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 24px 20px;
+  }
+  .chart-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+  .chart-wrap {
+    position: relative;
+  }
+
+  /* TABLE */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 0 12px 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td {
+    padding: 11px 12px 11px 0;
+    color: var(--text);
+  }
+  tbody td:last-child { color: var(--accent3); font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+
+  .rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    background: var(--surface2);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-right: 10px;
+  }
+  .rank-1 { background: #4f7cff22; color: var(--accent); }
+  .rank-2 { background: #a78bfa22; color: var(--accent2); }
+  .rank-3 { background: #34d39922; color: var(--accent3); }
+
+  .bar-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .bar-bg {
+    flex: 1;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Online Retail Analytics</h1>
+    <p>Dec 2010 – Dec 2011 &nbsp;·&nbsp; UK-based E-Commerce Store</p>
+  </div>
+  <div class="badge">524,878 Transactions</div>
+</div>
+
+<!-- KPI CARDS -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Total Revenue</div>
+    <div class="kpi-value">£10.6<span>M</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Total Orders</div>
+    <div class="kpi-value">19,960</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Customers</div>
+    <div class="kpi-value">4,338</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Unique Products</div>
+    <div class="kpi-value">3,922</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Avg Order Value</div>
+    <div class="kpi-value">£533<span>.17</span></div>
+  </div>
+</div>
+
+<!-- ROW 1: Revenue trend + Country donut -->
+<div class="charts-row">
+  <div class="chart-card">
+    <div class="chart-title">Monthly Revenue Trend</div>
+    <div class="chart-sub">Total revenue by month across the full period</div>
+    <div class="chart-wrap" style="height:240px">
+      <canvas id="revenueChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Revenue by Country</div>
+    <div class="chart-sub">Top 5 markets share</div>
+    <div class="chart-wrap" style="height:240px">
+      <canvas id="countryDonut"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ROW 2: Top products table + Top countries bar -->
+<div class="charts-row2">
+  <div class="table-card">
+    <div class="chart-title">Top 10 Products by Revenue</div>
+    <div class="chart-sub" style="margin-bottom:16px">Ranked by total revenue generated</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product</th>
+          <th style="text-align:right">Revenue</th>
+        </tr>
+      </thead>
+      <tbody id="productsTable"></tbody>
+    </table>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Top 10 Countries</div>
+    <div class="chart-sub">Revenue contribution by country</div>
+    <div class="chart-wrap" style="height:320px">
+      <canvas id="countryBar"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ROW 3: Purchase Cycle -->
+<div style="margin-top:20px;margin-bottom:20px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+
+    <!-- Cycle KPIs -->
+    <div class="chart-card" style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <div class="chart-title">Purchase Cycle Overview</div>
+        <div class="chart-sub">How often customers return to buy</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:var(--surface2);border-radius:10px;padding:16px 18px;border:1px solid var(--border);">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-muted);margin-bottom:6px;">Median Days Between Orders</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:var(--accent);">53 <span style="font-size:14px;font-weight:400;color:var(--text-muted)">days</span></div>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:16px 18px;border:1px solid var(--border);">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-muted);margin-bottom:6px;">Average Days Between Orders</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:var(--accent2);">72 <span style="font-size:14px;font-weight:400;color:var(--text-muted)">days</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:var(--surface2);border-radius:10px;padding:14px 16px;border:1px solid var(--border);">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.6px;">One-Time Buyers</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#f472b6;">1,493</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">34.4% of customers</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:14px 16px;border:1px solid var(--border);">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.6px;">Repeat Buyers</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:var(--accent3);">2,845</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">65.6% of customers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cycle Bucket Bar Chart -->
+    <div class="chart-card">
+      <div class="chart-title">Buy Cycle Distribution</div>
+      <div class="chart-sub">Customers grouped by avg days between purchases</div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="cycleBucketChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Order Frequency Chart -->
+    <div class="chart-card">
+      <div class="chart-title">Order Frequency per Customer</div>
+      <div class="chart-sub">How many times each customer has ordered</div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="orderFreqChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  Data period: 01 Dec 2010 – 09 Dec 2011 &nbsp;·&nbsp; Source: Cleaned_Online_Retail_Data.csv
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────
+const monthlyLabels = ['Dec-10','Jan-11','Feb-11','Mar-11','Apr-11','May-11','Jun-11','Jul-11','Aug-11','Sep-11','Oct-11','Nov-11','Dec-11'];
+const monthlyRev    = [821452.73,689811.61,522545.56,716215.26,536968.49,769296.61,760547.01,718076.12,757841.38,1056435.19,1151263.73,1503866.78,637790.33];
+
+const countryLabels = ['United Kingdom','Netherlands','EIRE','Germany','France','Australia','Spain','Switzerland','Belgium','Sweden'];
+const countryRev    = [9001744.09,285446.34,283140.52,228678.40,209625.37,138453.81,61558.56,57067.60,41196.34,38367.83];
+
+const products = [
+  ['DOTCOM POSTAGE',206248.77],['REGENCY CAKESTAND 3 TIER',174156.54],['PAPER CRAFT, LITTLE BIRDIE',168469.60],
+  ['WHITE HANGING HEART T-LIGHT',106236.72],['PARTY BUNTING',99445.23],['JUMBO BAG RED RETROSPOT',94159.81],
+  ['MEDIUM CERAMIC TOP STORAGE JAR',81700.92],['POSTAGE',78101.88],['Manual',77752.82],['RABBIT NIGHT LIGHT',66870.03]
+];
+
+// ─── COLORS ───────────────────────────────────────────────────────────
+const C = { accent:'#4f7cff', accent2:'#a78bfa', accent3:'#34d399', accent4:'#fb923c', pink:'#f472b6', text:'#e8ecf4', muted:'#7a849e', border:'#252c3d', bg:'#161a23' };
+Chart.defaults.color = C.muted;
+Chart.defaults.borderColor = C.border;
+
+// ─── MONTHLY REVENUE (Area Line) ──────────────────────────────────────
+const gradient1 = document.getElementById('revenueChart').getContext('2d').createLinearGradient(0,0,0,240);
+gradient1.addColorStop(0,'rgba(79,124,255,0.3)');
+gradient1.addColorStop(1,'rgba(79,124,255,0.0)');
+
+new Chart('revenueChart', {
+  type: 'line',
+  data: {
+    labels: monthlyLabels,
+    datasets: [{
+      label: 'Revenue',
+      data: monthlyRev,
+      borderColor: C.accent,
+      backgroundColor: gradient1,
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointBackgroundColor: C.accent,
+      pointBorderColor: '#0d0f14',
+      pointBorderWidth: 2,
+      tension: 0.4,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor:'#1e2330', borderColor: C.border, borderWidth:1,
+      callbacks: { label: ctx => ' £' + (ctx.raw/1000).toFixed(0) + 'K' }
+    }},
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#252c3d' }, ticks: { font:{size:11}, callback: v => '£'+(v/1000).toFixed(0)+'K' } }
+    }
+  }
+});
+
+// ─── COUNTRY DONUT ────────────────────────────────────────────────────
+const donutColors = [C.accent,'#7c3aed',C.accent3,C.accent4,C.pink];
+new Chart('countryDonut', {
+  type: 'doughnut',
+  data: {
+    labels: ['United Kingdom','Netherlands','EIRE','Germany','France'],
+    datasets: [{
+      data: [9001744.09,285446.34,283140.52,228678.40,209625.37],
+      backgroundColor: donutColors,
+      borderColor: '#161a23',
+      borderWidth: 3,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '68%',
+    plugins: {
+      legend: { position:'bottom', labels:{ font:{size:11}, padding:12, boxWidth:10, color:C.muted } },
+      tooltip: { backgroundColor:'#1e2330', borderColor:C.border, borderWidth:1,
+        callbacks:{ label: ctx => ' £'+(ctx.raw/1000).toFixed(0)+'K ('+((ctx.raw/10642110)*100).toFixed(1)+'%)' } }
+    }
+  }
+});
+
+// ─── COUNTRY BAR ──────────────────────────────────────────────────────
+const barColors = [C.accent,C.accent2,C.accent3,C.accent4,C.pink,'#38bdf8','#f87171','#facc15','#4ade80','#c084fc'];
+new Chart('countryBar', {
+  type: 'bar',
+  data: {
+    labels: countryLabels.map(l => l.length > 13 ? l.slice(0,13)+'…' : l),
+    datasets: [{
+      label: 'Revenue',
+      data: countryRev,
+      backgroundColor: barColors,
+      borderRadius: 6,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend:{display:false}, tooltip:{
+      backgroundColor:'#1e2330', borderColor:C.border, borderWidth:1,
+      callbacks:{ label: ctx => ' £'+(ctx.raw/1000).toFixed(0)+'K' }
+    }},
+    scales: {
+      x: { grid:{color:'#252c3d'}, ticks:{ font:{size:10}, callback:v=>'£'+(v/1000).toFixed(0)+'K' } },
+      y: { grid:{display:false}, ticks:{ font:{size:11} } }
+    }
+  }
+});
+
+// ─── PRODUCTS TABLE ───────────────────────────────────────────────────
+const maxRev = products[0][1];
+const tbody = document.getElementById('productsTable');
+products.forEach(([name, rev], i) => {
+  const pct = (rev/maxRev*100).toFixed(0);
+  const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+  tbody.innerHTML += `
+    <tr>
+      <td><span class="rank ${rankClass}">${i+1}</span></td>
+      <td>
+        <div style="font-weight:500;margin-bottom:5px;color:#e8ecf4">${name}</div>
+        <div class="bar-inline">
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <span style="font-size:11px;color:#7a849e;white-space:nowrap">${pct}%</span>
+        </div>
+      </td>
+      <td style="text-align:right">£${rev.toLocaleString('en-GB',{maximumFractionDigits:0})}</td>
+    </tr>`;
+});
+
+// ─── PURCHASE CYCLE BUCKET BAR ────────────────────────────────────────
+const cycleLabels = ['Weekly\n≤7d','Bi-Weekly\n8-14d','Monthly\n15-30d','2 Months\n31-60d','3 Months\n61-90d','6 Months\n91-180d','Yearly\n181-365d'];
+const cycleCounts = [65, 140, 474, 863, 509, 522, 209];
+const cycleColors = ['#38bdf8','#4f7cff','#a78bfa','#34d399','#fb923c','#f472b6','#facc15'];
+
+new Chart('cycleBucketChart', {
+  type: 'bar',
+  data: {
+    labels: cycleLabels,
+    datasets: [{
+      label: 'Customers',
+      data: cycleCounts,
+      backgroundColor: cycleColors,
+      borderRadius: 6,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor:'#1e2330', borderColor: C.border, borderWidth:1,
+        callbacks: { label: ctx => ' ' + ctx.raw + ' customers' }
+      }
+    },
+    scales: {
+      x: { grid:{display:false}, ticks:{ font:{size:10}, color: C.muted } },
+      y: { grid:{color:'#252c3d'}, ticks:{ font:{size:10}, color: C.muted } }
+    }
+  }
+});
+
+// ─── ORDER FREQUENCY (top 10 counts) ─────────────────────────────────
+const freqLabels = ['1x','2x','3x','4x','5x','6x','7x','8x','9x','10x+'];
+const freqCounts = [1493, 835, 508, 388, 242, 172, 143, 98, 68, 391];
+
+const gradFreq = document.getElementById('orderFreqChart').getContext('2d').createLinearGradient(0,0,0,280);
+gradFreq.addColorStop(0,'rgba(167,139,250,0.35)');
+gradFreq.addColorStop(1,'rgba(167,139,250,0.0)');
+
+new Chart('orderFreqChart', {
+  type: 'line',
+  data: {
+    labels: freqLabels,
+    datasets: [{
+      label: 'Customers',
+      data: freqCounts,
+      borderColor: C.accent2,
+      backgroundColor: gradFreq,
+      borderWidth: 2.5,
+      pointRadius: 5,
+      pointBackgroundColor: C.accent2,
+      pointBorderColor: '#0d0f14',
+      pointBorderWidth: 2,
+      tension: 0.35,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor:'#1e2330', borderColor: C.border, borderWidth:1,
+        callbacks: { label: ctx => ' ' + ctx.raw + ' customers' }
+      }
+    },
+    scales: {
+      x: { grid:{display:false}, ticks:{ font:{size:11} } },
+      y: { grid:{color:'#252c3d'}, ticks:{ font:{size:10} } }
+    }
+  }
+});
+
+</script>
+</body>
+</html>
